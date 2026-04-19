@@ -4,85 +4,88 @@ A deep learning pipeline that transcribes handwritten text using TrOCR and evalu
 
 ## Project Overview
 
-ScribeCheck is an end-to-end system that takes a handwritten text image as input, transcribes it using Microsoft's TrOCR model, and compares the transcription against a reference text to produce a similarity score. The system is designed for use cases like automated exam grading, document verification, and handwritten form processing.
+ScribeCheck takes a handwritten text image as input, transcribes it using Microsoft's TrOCR (pre-trained on the IAM Handwriting Database), and compares the transcription against reference text to produce an evaluation score. Designed for educational grading, document verification, and handwritten form processing.
 
-The pipeline has three stages:
-1. **Preprocessing** — Image cleaning, binarization, and deskewing using OpenCV
-2. **OCR Recognition** — Handwritten text transcription using TrOCR fine-tuned on the IAM dataset
-3. **Hybrid Similarity Scoring** — Combining Levenshtein distance, BLEU score, and cosine similarity over sentence embeddings into a single weighted evaluation score
+**Pipeline:** Image → Preprocessing (OpenCV) → TrOCR OCR → CER/WER Evaluation → Hybrid Similarity (Levenshtein + BLEU + Cosine) → Combined Score → Gradio UI
 
-## Repository Structure (Planned)
+## Repository Structure
 
 ```
 ScribeCheck/
-├── data/                  # Raw and processed data
 ├── notebooks/
-│   └── setup.ipynb        # Environment setup, data loading, and exploration
-├── src/                   # Source code modules
-├── ui/                    # Gradio interface (upcoming)
-├── results/               # Output visualizations and evaluation results
-├── docs/                  # Architecture diagrams and project documentation
-├── requirements.txt       # Python dependencies
+│   └── train_and_evaluate.ipynb   # Master notebook — runs entire pipeline
+├── src/
+│   ├── preprocessing.py           # Image preprocessing (OpenCV)
+│   ├── ocr_engine.py              # TrOCR inference
+│   ├── similarity.py              # Hybrid similarity scoring
+│   ├── evaluation.py              # CER, WER, cascade analysis
+│   └── train.py                   # Standalone training script (CUDA only)
+├── ui/
+│   └── app.py                     # Gradio web interface
+├── results/                       # Generated plots and metrics
+├── docs/                          # Architecture diagrams, report, screenshots
+├── data/                          # Dataset cache
+├── requirements.txt
 └── README.md
 ```
 
-## Installation and Setup
-
-### Prerequisites
-- Python 3.9 or higher
-- pip package manager
-- (Recommended) NVIDIA GPU with CUDA for model fine-tuning
-
-### Steps
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Shiva-a1/ScribeCheck.git
-   cd ScribeCheck
-   ```
-
-2. **Create a virtual environment (recommended)**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Download NLTK data (required for BLEU scoring)**
-   ```python
-   import nltk
-   nltk.download('punkt')
-   nltk.download('punkt_tab')
-   ```
-
-## How to Run the Notebook
+## Installation
 
 ```bash
-jupyter notebook notebooks/setup.ipynb
+git clone https://github.com/YOUR_USERNAME/ScribeCheck.git
+cd ScribeCheck
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 ```
 
-The `setup.ipynb` notebook walks through:
-- Verifying that the environment and all dependencies are correctly installed
-- Loading the IAM Handwriting Dataset from HuggingFace
-- Exploratory data analysis with summary statistics and visualizations
-- Running TrOCR inference on sample handwritten images
-- Computing CER (Character Error Rate) and WER (Word Error Rate) metrics
-- Demonstrating the hybrid similarity scoring system
-- Previewing cascade failure analysis
+## How to Run
+
+### Option 1: Master Notebook (recommended)
+```bash
+jupyter notebook notebooks/train_and_evaluate.ipynb
+```
+Runs everything top to bottom: data loading → model inference → CER/WER evaluation → similarity scoring → cascade analysis → saves results → launches Gradio UI.
+
+### Option 2: Standalone Gradio UI
+```bash
+python ui/app.py
+```
+
+### Option 3: Training (CUDA / Colab only)
+```bash
+python src/train.py
+```
+
+## Hardware Compatibility
+
+| Feature | CUDA (NVIDIA) | MPS (Apple Silicon) | CPU |
+|---------|:---:|:---:|:---:|
+| Inference | ✅ | ✅ | ✅ |
+| Fine-tuning | ✅ | ❌ | ✅ (slow) |
+| Gradio UI | ✅ | ✅ | ✅ |
+
+**MPS Note:** TrOCR fine-tuning is incompatible with Apple Silicon MPS due to a PyTorch backward-pass limitation (non-contiguous tensor `view` operations in the attention layers). Inference works perfectly on MPS. The pre-trained `trocr-base-handwritten` is already fine-tuned on IAM by Microsoft (~4.4% CER), so the full evaluation pipeline runs without additional training. For custom fine-tuning, use Google Colab (free T4 GPU).
+
+## Current Results
+
+After running the notebook, results are saved to `results/`:
+- `sample_images.png` — dataset samples
+- `text_length_distributions.png` — text statistics
+- `cer_wer_distributions.png` — CER and WER histograms
+- `test_predictions_visual.png` — predictions vs ground truth
+- `metrics_correlation.png` — correlation heatmap
+- `cer_vs_similarity.png` — CER vs combined score scatter
+- `cascade_analysis.png` — similarity stratified by OCR quality
+- `final_results.json` — all metrics
+- `test_results.csv` — per-sample results
 
 ## Dataset
 
-- **IAM Handwriting Database** — accessed via HuggingFace Datasets (`Teklia/IAM-line`)
-- Contains handwritten English text from 650+ writers with word-level and line-level annotations
-- Pre-segmented line images are used for initial development
-- No manual download required cause the dataset is loaded programmatically in the notebook
+**IAM Handwriting Database** via HuggingFace (`Teklia/IAM-line`) — 10,373 line images, 650+ writers. No manual download needed.
 
 ## Author
 
-**Shivanshu Ade**  
-Deep Learning — Semester Project, Spring 2026  
-Contact: [shivansh.ade@ufl.edu]
+**Shivanshu Ade**
+Deep Learning — Semester Project, Spring 2026
