@@ -88,4 +88,5 @@ After running the notebook, results are saved to `results/`:
 ## Author
 
 **Shivanshu Ade**
+Email - shivansh.ade@ufl.edu
 Deep Learning — Semester Project, Spring 2026
