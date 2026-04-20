@@ -4,9 +4,28 @@ A deep learning pipeline that transcribes handwritten text using TrOCR and evalu
 
 ## Project Overview
 
-ScribeCheck takes a handwritten text image as input, transcribes it using Microsoft's TrOCR (pre-trained on the IAM Handwriting Database), and compares the transcription against reference text to produce an evaluation score. Designed for educational grading, document verification, and handwritten form processing.
+ScribeCheck takes a handwritten text image, transcribes it using Microsoft's TrOCR (pre-trained on IAM Handwriting Database), and compares the transcription against reference text using a hybrid similarity system combining Levenshtein distance, BLEU score, and cosine similarity over sentence embeddings. Designed for educational grading, document verification, and form processing.
 
-**Pipeline:** Image → Preprocessing (OpenCV) → TrOCR OCR → CER/WER Evaluation → Hybrid Similarity (Levenshtein + BLEU + Cosine) → Combined Score → Gradio UI
+**Pipeline:** Image → Preprocessing (CLAHE + Adaptive Thresholding) -> TrOCR OCR -> CER/WER Evaluation -> Hybrid Similarity -> Combined Score -> Gradio UI
+
+## Current Results
+
+**Note** - D2 refers to the work I had done for Deliverable 2 of this project and D3 is further improvments which I had submitted during Deliverable 3
+
+| Metric | D2 (50 samples) | D3 (200 samples) |
+|--------|:---:|:---:|
+| Mean CER | 0.72% | See results/final_results_d3.json |
+| Mean WER | 2.44% | See results/final_results_d3.json |
+| Mean Combined Similarity | 0.968 | See results/final_results_d3.json |
+| Published Baseline CER | ~4.4% | ~4.4% |
+
+### D3 Improvements over D2
+- Evaluation expanded from 50 → 200 samples for more robust metrics
+- Enhanced preprocessing with CLAHE contrast enhancement and adaptive thresholding
+- Weight sensitivity analysis across 6 weight configurations
+- Difficulty-stratified evaluation by text length
+- Improved Gradio UI with preprocessed image display, quality assessment, and confidence labels
+- Better error handling throughout the pipeline
 
 ## Repository Structure
 
@@ -15,16 +34,16 @@ ScribeCheck/
 ├── notebooks/
 │   └── train_and_evaluate.ipynb   # Master notebook — runs entire pipeline
 ├── src/
-│   ├── preprocessing.py           # Image preprocessing (OpenCV)
-│   ├── ocr_engine.py              # TrOCR inference
+│   ├── preprocessing.py           # Enhanced preprocessing (CLAHE, adaptive thresh)
+│   ├── ocr_engine.py              # TrOCR inference (CUDA/MPS/CPU)
 │   ├── similarity.py              # Hybrid similarity scoring
 │   ├── evaluation.py              # CER, WER, cascade analysis
-│   └── train.py                   # Standalone training script (CUDA only)
+│   └── train.py                   # Fine-tuning script (CUDA only)
 ├── ui/
-│   └── app.py                     # Gradio web interface
+│   └── app.py                     # Improved Gradio interface (v2)
 ├── results/                       # Generated plots and metrics
-├── docs/                          # Architecture diagrams, report, screenshots
-├── data/                          # Dataset cache
+├── docs/                          # Diagrams, screenshots, report
+├── data/
 ├── requirements.txt
 └── README.md
 ```
@@ -35,58 +54,45 @@ ScribeCheck/
 git clone https://github.com/YOUR_USERNAME/ScribeCheck.git
 cd ScribeCheck
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
 python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 ```
 
 ## How to Run
 
-### Option 1: Master Notebook (recommended)
+### Master Notebook (recommended)
 ```bash
 jupyter notebook notebooks/train_and_evaluate.ipynb
 ```
-Runs everything top to bottom: data loading → model inference → CER/WER evaluation → similarity scoring → cascade analysis → saves results → launches Gradio UI.
 
-### Option 2: Standalone Gradio UI
+### Standalone Gradio UI
 ```bash
 python ui/app.py
 ```
 
-### Option 3: Training (CUDA / Colab only)
-```bash
-python src/train.py
-```
-
 ## Hardware Compatibility
 
-| Feature | CUDA (NVIDIA) | MPS (Apple Silicon) | CPU |
+| Feature | CUDA | MPS (Apple Silicon) | CPU |
 |---------|:---:|:---:|:---:|
 | Inference | ✅ | ✅ | ✅ |
 | Fine-tuning | ✅ | ❌ | ✅ (slow) |
 | Gradio UI | ✅ | ✅ | ✅ |
 
-**MPS Note:** TrOCR fine-tuning is incompatible with Apple Silicon MPS due to a PyTorch backward-pass limitation (non-contiguous tensor `view` operations in the attention layers). Inference works perfectly on MPS. The pre-trained `trocr-base-handwritten` is already fine-tuned on IAM by Microsoft (~4.4% CER), so the full evaluation pipeline runs without additional training. For custom fine-tuning, use Google Colab (free T4 GPU).
+**MPS Note:** TrOCR fine-tuning fails on MPS due to a PyTorch backward-pass limitation. Inference works perfectly. The pre-trained model is already fine-tuned on IAM by Microsoft.
 
-## Current Results
-
-After running the notebook, results are saved to `results/`:
-- `sample_images.png` — dataset samples
-- `text_length_distributions.png` — text statistics
-- `cer_wer_distributions.png` — CER and WER histograms
-- `test_predictions_visual.png` — predictions vs ground truth
-- `metrics_correlation.png` — correlation heatmap
-- `cer_vs_similarity.png` — CER vs combined score scatter
-- `cascade_analysis.png` — similarity stratified by OCR quality
-- `final_results.json` — all metrics
-- `test_results.csv` — per-sample results
+## Known Issues
+- MPS (Apple Silicon) incompatible with TrOCR training backward pass
+- Model does not generalize well to non-IAM handwriting (different styles, lined paper, etc.)
+- Similarity weights use defaults (0.35/0.30/0.35); labeled test set for optimization is future work
+- Very cursive or low-contrast handwriting produces higher CER
 
 ## Dataset
 
-**IAM Handwriting Database** via HuggingFace (`Teklia/IAM-line`) — 10,373 line images, 650+ writers. No manual download needed.
+**IAM Handwriting Database** via HuggingFace (`Teklia/IAM-line`) — 10,373 line images, 650+ writers.
 
 ## Author
 
 **Shivanshu Ade**
 - Email: shivansh.ade@ufl.edu
-- Deep Learning, Semester Project, Spring 2026
+- Applied Deep Learning, Semester Project, Spring 2026
