@@ -2,30 +2,23 @@
 
 A deep learning pipeline that transcribes handwritten text using TrOCR and evaluates it against reference text using hybrid similarity scoring.
 
-## Project Overview
+## Overview
 
-ScribeCheck takes a handwritten text image, transcribes it using Microsoft's TrOCR (pre-trained on IAM Handwriting Database), and compares the transcription against reference text using a hybrid similarity system combining Levenshtein distance, BLEU score, and cosine similarity over sentence embeddings. Designed for educational grading, document verification, and form processing.
+ScribeCheck takes a handwritten text image, transcribes it using Microsoft's TrOCR model (pre-trained on the IAM Handwriting Database), and compares the transcription against reference text using a hybrid similarity system. The system combines three complementary metrics — Levenshtein distance (character-level accuracy), BLEU score (word/phrase overlap), and cosine similarity over sentence embeddings (semantic meaning) — into a single weighted evaluation score.
 
-**Pipeline:** Image → Preprocessing (CLAHE + Adaptive Thresholding) -> TrOCR OCR -> CER/WER Evaluation -> Hybrid Similarity -> Combined Score -> Gradio UI
+**Target applications:** Educational grading, document verification, handwritten form processing.
 
-## Current Results
+**Pipeline:** Image → Preprocessing (CLAHE + Adaptive Thresholding) → TrOCR OCR → CER/WER Evaluation → Hybrid Similarity Scoring → Combined Score (0–1) → Gradio UI
 
-**Note** - D2 refers to the work I had done for Deliverable 2 of this project and D3 is further improvments which I had submitted during Deliverable 3
+## Performance Results
 
-| Metric | D2 (50 samples) | D3 (200 samples) |
-|--------|:---:|:---:|
-| Mean CER | 0.72% | See results/final_results_d3.json |
-| Mean WER | 2.44% | See results/final_results_d3.json |
-| Mean Combined Similarity | 0.968 | See results/final_results_d3.json |
-| Published Baseline CER | ~4.4% | ~4.4% |
-
-### D3 Improvements over D2
-- Evaluation expanded from 50 → 200 samples for more robust metrics
-- Enhanced preprocessing with CLAHE contrast enhancement and adaptive thresholding
-- Weight sensitivity analysis across 6 weight configurations
-- Difficulty-stratified evaluation by text length
-- Improved Gradio UI with preprocessed image display, quality assessment, and confidence labels
-- Better error handling throughout the pipeline
+| Metric | Value (200 samples) |
+|--------|:---:|
+| Mean CER | 0.70% |
+| Mean WER | 2.49% |
+| Perfect transcriptions | 175 / 200 (87.5%) |
+| Mean Combined Similarity | 0.9738 |
+| Published Baseline CER | ~4.4% |
 
 ## Repository Structure
 
@@ -34,13 +27,13 @@ ScribeCheck/
 ├── notebooks/
 │   └── train_and_evaluate.ipynb   # Master notebook — runs entire pipeline
 ├── src/
-│   ├── preprocessing.py           # Enhanced preprocessing (CLAHE, adaptive thresh)
+│   ├── preprocessing.py           # Image preprocessing (CLAHE, adaptive thresh)
 │   ├── ocr_engine.py              # TrOCR inference (CUDA/MPS/CPU)
 │   ├── similarity.py              # Hybrid similarity scoring
 │   ├── evaluation.py              # CER, WER, cascade analysis
 │   └── train.py                   # Fine-tuning script (CUDA only)
 ├── ui/
-│   └── app.py                     # Improved Gradio interface (v2)
+│   └── app.py                     # Gradio web interface
 ├── results/                       # Generated plots and metrics
 ├── docs/                          # Diagrams, screenshots, report
 ├── data/
@@ -54,45 +47,52 @@ ScribeCheck/
 git clone https://github.com/YOUR_USERNAME/ScribeCheck.git
 cd ScribeCheck
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 ```
 
 ## How to Run
 
-### Master Notebook (recommended)
+### Master Notebook (runs the complete pipeline)
 ```bash
 jupyter notebook notebooks/train_and_evaluate.ipynb
 ```
+Runs end-to-end: dataset loading → data exploration → OCR inference → CER/WER evaluation → hybrid similarity scoring → cascade failure analysis → weight sensitivity analysis → difficulty stratification → saves all results → launches Gradio UI.
 
 ### Standalone Gradio UI
 ```bash
 python ui/app.py
 ```
 
+### Fine-Tuning (CUDA or Colab only)
+```bash
+python src/train.py
+```
+
 ## Hardware Compatibility
 
-| Feature | CUDA | MPS (Apple Silicon) | CPU |
+| Feature | CUDA (NVIDIA) | MPS (Apple Silicon) | CPU |
 |---------|:---:|:---:|:---:|
 | Inference | ✅ | ✅ | ✅ |
 | Fine-tuning | ✅ | ❌ | ✅ (slow) |
 | Gradio UI | ✅ | ✅ | ✅ |
 
-**MPS Note:** TrOCR fine-tuning fails on MPS due to a PyTorch backward-pass limitation. Inference works perfectly. The pre-trained model is already fine-tuned on IAM by Microsoft.
+**MPS Note:** TrOCR fine-tuning is incompatible with Apple Silicon MPS due to a PyTorch backward-pass limitation (non-contiguous tensor `view` operations in attention layers during gradient computation). Inference works perfectly on MPS. The pre-trained model is already fine-tuned on IAM by Microsoft (~4.4% CER baseline).
 
 ## Known Issues
-- MPS (Apple Silicon) incompatible with TrOCR training backward pass
+
+- MPS incompatible with TrOCR training backward pass
 - Model does not generalize well to non-IAM handwriting (different styles, lined paper, etc.)
-- Similarity weights use defaults (0.35/0.30/0.35); labeled test set for optimization is future work
+- Similarity weights use defaults (0.35/0.30/0.35); labeled test set for tuning is future work
 - Very cursive or low-contrast handwriting produces higher CER
+- Short texts (<20 chars) have disproportionately higher CER due to denominator effect
 
 ## Dataset
 
-**IAM Handwriting Database** via HuggingFace (`Teklia/IAM-line`) — 10,373 line images, 650+ writers.
+**IAM Handwriting Database** via HuggingFace Datasets (`Teklia/IAM-line`) — line-level handwritten English text images from 650+ writers. No manual download required.
 
 ## Author
 
 **Shivanshu Ade**
-- Email: shivansh.ade@ufl.edu
-- Applied Deep Learning, Semester Project, Spring 2026
+Deep Learning — Semester Project, Spring 2026

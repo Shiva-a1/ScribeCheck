@@ -1,6 +1,9 @@
 """
 ocr_engine.py — TrOCR-based handwritten text recognition.
+
 Supports CUDA, MPS (Apple Silicon), and CPU for inference.
+Note: MPS is supported for inference only. Fine-tuning requires CUDA or CPU
+due to a PyTorch backward-pass incompatibility with TrOCR's attention layers.
 """
 
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
@@ -11,7 +14,7 @@ DEFAULT_MODEL = "microsoft/trocr-base-handwritten"
 
 
 def get_device():
-    """Auto-detect best available device."""
+    """Auto-detect the best available device for inference."""
     if torch.cuda.is_available():
         return "cuda"
     elif torch.backends.mps.is_available():
@@ -20,6 +23,7 @@ def get_device():
 
 
 def load_model(model_name=DEFAULT_MODEL, device=None):
+    """Load TrOCR processor and model onto the specified device."""
     if device is None:
         device = get_device()
     processor = TrOCRProcessor.from_pretrained(model_name)
@@ -30,6 +34,7 @@ def load_model(model_name=DEFAULT_MODEL, device=None):
 
 
 def recognize_text(image, processor, model, device="cpu"):
+    """Run OCR on a single PIL Image and return the predicted text."""
     if image.mode != "RGB":
         image = image.convert("RGB")
     pixel_values = processor(images=image, return_tensors="pt").pixel_values.to(device)
@@ -39,6 +44,7 @@ def recognize_text(image, processor, model, device="cpu"):
 
 
 def recognize_batch(images, processor, model, device="cpu", batch_size=8):
+    """Run OCR on a list of PIL Images in batches."""
     predictions = []
     for i in range(0, len(images), batch_size):
         batch = [img.convert("RGB") if img.mode != "RGB" else img for img in images[i:i + batch_size]]

@@ -1,22 +1,25 @@
 {
   "model": "microsoft/trocr-base-handwritten",
   "device": "mps",
-  "test_samples": 50,
-  "ocr": {
+  "initial_evaluation": {
+    "samples": 50,
     "mean_cer": 0.0072,
     "mean_wer": 0.0244,
-    "baseline_cer": 0.044
+    "mean_combined": 0.968
   },
-  "similarity": {
-    "mean_combined": 0.968,
+  "expanded_evaluation": {
+    "samples": 200,
+    "mean_cer": 0.007,
+    "mean_wer": 0.0249,
+    "mean_combined": 0.9738,
     "mean_levenshtein": 0.9931,
-    "mean_bleu": 0.9273,
-    "mean_cosine": 0.9778
+    "mean_bleu": 0.9403,
+    "mean_cosine": 0.9832
   },
   "cascade": {
-    "good_ocr_count": 49,
-    "poor_ocr_count": 1,
-    "good_combined": 0.9746,
-    "poor_combined": 0.6432
+    "good_ocr_count": 197,
+    "poor_ocr_count": 3,
+    "good_combined": 0.9791,
+    "poor_combined": 0.6274
   }
 }

@@ -1,1 +1,1 @@
-# ScribeCheck — source modules
+# ScribeCheck — Handwritten Text Evaluation System

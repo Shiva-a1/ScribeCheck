@@ -1,23 +1,27 @@
 """
-evaluation.py — CER, WER, batch evaluation, and cascade failure analysis.
+evaluation.py — OCR evaluation metrics and cascade failure analysis.
+
 """
 
 from jiwer import wer, cer
 
 
 def compute_cer(prediction, reference):
+    """Compute Character Error Rate between prediction and reference."""
     if not reference.strip():
         return 0.0 if not prediction.strip() else 1.0
     return cer(reference, prediction)
 
 
 def compute_wer(prediction, reference):
+    """Compute Word Error Rate between prediction and reference."""
     if not reference.strip():
         return 0.0 if not prediction.strip() else 1.0
     return wer(reference, prediction)
 
 
 def evaluate_ocr_batch(predictions, references):
+    """Compute CER and WER for a batch of prediction-reference pairs."""
     assert len(predictions) == len(references)
     results = []
     for pred, ref in zip(predictions, references):
@@ -28,11 +32,19 @@ def evaluate_ocr_batch(predictions, references):
         })
     mean_cer = sum(r["cer"] for r in results) / len(results)
     mean_wer = sum(r["wer"] for r in results) / len(results)
-    return {"mean_cer": round(mean_cer, 4), "mean_wer": round(mean_wer, 4),
-            "num_samples": len(results), "per_sample": results}
+    return {
+        "mean_cer": round(mean_cer, 4), "mean_wer": round(mean_wer, 4),
+        "num_samples": len(results), "per_sample": results,
+    }
 
 
 def cascade_analysis(predictions, references, cer_threshold=0.1):
+    """
+    Stratify similarity scores by OCR quality (CER threshold).
+    Separates samples into 'good OCR' and 'poor OCR' groups and reports
+    similarity metrics for each, isolating the effect of transcription
+    errors on evaluation scores.
+    """
     from src.similarity import compute_hybrid_score
     good_ocr, poor_ocr = [], []
     for pred, ref in zip(predictions, references):
@@ -53,6 +65,8 @@ def cascade_analysis(predictions, references, cer_threshold=0.1):
             "mean_cosine": round(sum(g["cosine"] for g in group) / len(group), 4),
         }
 
-    return {"cer_threshold": cer_threshold, "good_ocr": _summarize(good_ocr),
-            "poor_ocr": _summarize(poor_ocr),
-            "good_ocr_samples": good_ocr, "poor_ocr_samples": poor_ocr}
+    return {
+        "cer_threshold": cer_threshold,
+        "good_ocr": _summarize(good_ocr), "poor_ocr": _summarize(poor_ocr),
+        "good_ocr_samples": good_ocr, "poor_ocr_samples": poor_ocr,
+    }
