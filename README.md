@@ -95,4 +95,5 @@ python src/train.py
 ## Author
 
 **Shivanshu Ade**
-Deep Learning — Semester Project, Spring 2026
+- email: shivansh.ade@ufl.edu
+- Deep Learning, Semester Project, Spring 2026
