@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scribe-Check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="signin">
+    <section class="signin-story">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">S</span>Scribe-Check</div>
+      <h1>Handwritten answers, graded by meaning.</h1>
+      <p>Upload your answer key and the scanned sheets. Three independent AI judges grade every answer against your key and notes, and flag the ones they disagree on.</p>
+      <figure class="specimen" aria-label="Example of a graded answer">
+        Lookup is fast because <mark>each step cuts the tree in half</mark>, so it takes <mark>log n time</mark> if the tree stays balanced.
+        <figcaption class="specimen-score"><span>2 of 3 marks</span><span>Missed: the unbalanced worst case</span></figcaption>
+      </figure>
+    </section>
+    <section class="signin-form" id="signin"></section>
+  </div>
+  <script type="module" src="/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+Data Structures Quiz 3 — Answer key
+
+Q1 (3 marks). Why is lookup in a balanced binary search tree O(log n)?
+Each comparison discards half of the remaining tree, so the number of steps is the tree's height, which is log n when the tree is balanced. In an unbalanced tree the height can reach n, so lookup degrades to O(n).
+
+Q2 (2 marks). What is the difference between a stack and a queue?
+A stack is last in, first out: items are added and removed at the same end. A queue is first in, first out: items are added at the back and removed from the front.
+
+Q3 (2 marks). What does a hash table do when two keys hash to the same bucket?
+This is a collision. It is resolved either by chaining (each bucket holds a list of entries) or by open addressing (probing for another free slot).

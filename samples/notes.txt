@@ -1,0 +1,5 @@
+Binary search trees. A binary search tree keeps every key in a node's left subtree smaller than the node and every key in the right subtree larger. Search starts at the root and moves left or right at each node, so the work done equals the height of the tree. A balanced tree with n keys has height about log2 n. Without balancing, inserting keys in sorted order produces a tree shaped like a linked list with height n. Self-balancing trees such as AVL and red-black trees keep the height logarithmic.
+
+Stacks and queues. A stack supports push and pop at one end and is used for function calls, undo, and depth-first search. A queue supports enqueue at the back and dequeue at the front and is used for scheduling and breadth-first search.
+
+Hash tables. A hash function maps a key to a bucket index. When two keys map to the same index, we have a collision. Separate chaining stores a list in each bucket. Open addressing stores entries in the array itself and probes for the next free slot using linear probing, quadratic probing or double hashing. The load factor is the number of entries divided by the number of buckets; keeping it low keeps operations close to O(1).
