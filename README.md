@@ -2,7 +2,7 @@
 
 **A multi-LLM grading pipeline for handwritten exams.** A teacher uploads an answer key, course notes, a class roster and scanned answer sheets. Claude reads each sheet, three independent judges (Claude, GPT and Gemini) grade every answer against the key, and the median mark stands. Answers the judges disagree on are flagged for review, and students sign in to see their marks and feedback once the teacher releases them.
 
-![Teacher dashboard](docs/screenshots/grades-dashboard.png)
+![Teacher dashboard](images/teacher_dashboard.png)
 
 ## How it works
 
