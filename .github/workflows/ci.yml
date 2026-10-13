@@ -1,0 +1,22 @@
+name: ci
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env: { POSTGRES_USER: scribe, POSTGRES_PASSWORD: scribe, POSTGRES_DB: scribe }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U scribe" --health-interval 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://scribe:scribe@localhost:5432/scribe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f db/schema.sql
+      - run: pytest -q
+      - run: for f in frontend/*.js; do node --input-type=module --check < "$f"; done

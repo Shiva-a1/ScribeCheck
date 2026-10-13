@@ -35,6 +35,7 @@ def publish(topic, key, value):
 
 
 def run(topic, group, handle, every=None, on_tick=None):
+    config.check_required()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     ensure_topics()
     consumer = Consumer({

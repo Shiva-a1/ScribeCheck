@@ -4,11 +4,12 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from api import auth, student, teacher
-from shared import kafka, storage
+from shared import config, kafka, storage
 
 
 @asynccontextmanager
 async def lifespan(app):
+    config.check_required()
     storage.ensure_bucket()
     kafka.ensure_topics()
     yield

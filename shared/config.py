@@ -23,3 +23,12 @@ def required(name):
     if not value:
         raise RuntimeError(f"Set {name} in .env")
     return value
+
+REQUIRED = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY",
+            "CLAUDE_MODEL", "CLAUDE_VISION_MODEL", "OPENAI_MODEL", "GEMINI_MODEL"]
+
+
+def check_required():
+    missing = [name for name in REQUIRED if not os.environ.get(name)]
+    if missing:
+        raise RuntimeError(f"Set these in .env: {', '.join(missing)}")
